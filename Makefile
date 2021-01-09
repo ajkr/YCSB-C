@@ -1,18 +1,26 @@
 CC=g++
-CFLAGS=-std=c++11 -g -Wall -pthread -I./
-LDFLAGS= -lpthread -ltbb -lhiredis
-SUBDIRS=core db redis
+CXX=$(CC)
+CFLAGS=-std=c++11 -g -Wall -pthread -I./ -I./rocksdb/include/
+CXXFLAGS=$(CFLAGS)
+ROCKSDB_LIB_DIR=$(CURDIR)/rocksdb/lib/
+LDFLAGS= -lpthread -ltbb -lhiredis -Wl,-rpath,$(ROCKSDB_LIB_DIR) -L$(ROCKSDB_LIB_DIR) -lrocksdb
+SUBDIRS=redis rocksdb
 SUBSRCS=$(wildcard core/*.cc) $(wildcard db/*.cc)
 OBJECTS=$(SUBSRCS:.cc=.o)
 EXEC=ycsbc
 
 all: $(SUBDIRS) $(EXEC)
 
-$(SUBDIRS):
+init-rocksdb:
+	$(MAKE) -C rocksdb init-headers
+
+$(OBJECTS): init-rocksdb
+
+$(SUBDIRS): $(OBJECTS)
 	$(MAKE) -C $@
 
-$(EXEC): $(wildcard *.cc) $(OBJECTS)
-	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
+$(EXEC): $(wildcard *.cc) $(OBJECTS) $(SUBDIRS)
+	$(CC) $(CFLAGS) $(wildcard *.cc) $(OBJECTS) $(LDFLAGS) -o $@
 
 clean:
 	for dir in $(SUBDIRS); do \
@@ -20,5 +28,4 @@ clean:
 	done
 	$(RM) $(EXEC)
 
-.PHONY: $(SUBDIRS) $(EXEC)
-
+.PHONY: $(SUBDIRS) $(EXEC) init-rocksdb
