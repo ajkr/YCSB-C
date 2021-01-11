@@ -12,6 +12,7 @@
 #include "db/basic_db.h"
 #include "db/lock_stl_db.h"
 #include "db/redis_db.h"
+#include "db/rocks_db.h"
 #include "db/tbb_rand_db.h"
 #include "db/tbb_scan_db.h"
 
@@ -32,6 +33,13 @@ DB* DBFactory::CreateDB(utils::Properties &props) {
     return new TbbRandDB;
   } else if (props["dbname"] == "tbb_scan") {
     return new TbbScanDB;
+  } else if (props["dbname"] == "rocksdb") {
+    std::string dir = props.GetProperty("rocksdb_dir");
+    if (dir.empty()) {
+      throw utils::Exception("-rocksdb_dir is required when -dbname=rocksdb");
+    }
+    std::string options_file = props.GetProperty("rocksdb_options_file");
+    return new RocksDB(dir, options_file);
   } else return NULL;
 }
 

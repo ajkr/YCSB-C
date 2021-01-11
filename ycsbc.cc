@@ -152,6 +152,22 @@ string ParseCommandLine(int argc, const char *argv[], utils::Properties &props) 
       }
       input.close();
       argindex++;
+    } else if (strcmp(argv[argindex], "-rocksdb_dir") == 0) {
+      argindex++;
+      if (argindex >= argc) {
+        UsageMessage(argv[0]);
+        exit(0);
+      }
+      props.SetProperty("rocksdb_dir", argv[argindex]);
+      argindex++;
+    } else if (strcmp(argv[argindex], "-rocksdb_options_file") == 0) {
+      argindex++;
+      if (argindex >= argc) {
+        UsageMessage(argv[0]);
+        exit(0);
+      }
+      props.SetProperty("rocksdb_options_file", argv[argindex]);
+      argindex++;
     } else {
       cout << "Unknown option '" << argv[argindex] << "'" << endl;
       exit(0);
