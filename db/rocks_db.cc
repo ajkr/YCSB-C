@@ -59,7 +59,8 @@ std::vector<DB::KVPair> ParseValue(const std::string& val,
 
 }  // anonymous namespace
 
-RocksDB::RocksDB(const std::string& dbname, const std::string& options_file) {
+RocksDB::RocksDB(const std::string& dbname, const std::string& options_file,
+                 bool use_existing_db) {
   rocksdb::DBOptions db_opts;
   std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
   if (!options_file.empty()) {
@@ -78,10 +79,12 @@ RocksDB::RocksDB(const std::string& dbname, const std::string& options_file) {
   }
   rocksdb::Options opts(db_opts, cf_descs[0].options);
 
-  // The dbname may not already exist in which case we expect destroy to fail
-  rocksdb::DestroyDB(dbname, opts).PermitUncheckedError();
+  if (!use_existing_db) {
+    // The dbname may not already exist in which case we expect destroy to fail
+    rocksdb::DestroyDB(dbname, opts).PermitUncheckedError();
+    opts.create_if_missing = true;
+  }
 
-  opts.create_if_missing = true;
   rocksdb::Status s = rocksdb::DB::Open(opts, dbname, &db_);
   if (!s.ok()) {
     throw utils::Exception(s.ToString());

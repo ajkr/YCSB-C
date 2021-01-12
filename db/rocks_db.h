@@ -17,7 +17,8 @@ namespace ycsbc {
 
 class RocksDB : public DB {
  public:
-  RocksDB(const std::string& dbname, const std::string& options_file);
+  RocksDB(const std::string& dbname, const std::string& options_file,
+          bool use_existing_db);
 
   virtual int Read(const std::string &table, const std::string &key,
                    const std::vector<std::string> *fields,
